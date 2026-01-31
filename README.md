@@ -1,3 +1,3 @@
 # DreadmystTrade
+A Discord Bot for seaching item price fetching from 'https://dreadmarket.net/api.html'
 
-## A Discord Bot for seaching items price

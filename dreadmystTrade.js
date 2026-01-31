@@ -10,9 +10,30 @@ const client = new Client({
         ],
 });
 
+const INPUT_CHANNEL = process.env.INPUT_CHANNEL.trim();
+const OUTPUT_CHANNEL = process.env.OUTPUT_CHANNEL.trim();
+
+let outputChannelCache = null;
+
+process.on('unhandledRejection', (err) => {
+        console.error('❌ Erro não tratado:', err);
+});
+
+client.once('ready', async () => {
+        console.log(`🤖 Bot conectado como ${client.user.tag}`);
+        try {
+                outputChannelCache = await client.channels.fetch(OUTPUT_CHANNEL);
+                console.log('✅ Canal de saída carregado:', outputChannelCache.name);
+        } catch (err) {
+                console.error('❌ Erro ao carregar canal de saída:', err);
+        }
+});
+
 client.on('messageCreate', async (message) => {
         if (message.author.bot) return;
         if (!message.content.startsWith('!price')) return;
+
+        if (message.channel.id !== INPUT_CHANNEL) return;
 
         const items = message.content
                 .replace('!price', '')
@@ -20,8 +41,15 @@ client.on('messageCreate', async (message) => {
                 .map((i) => i.trim())
                 .filter(Boolean);
 
+        console.log('Searching for', items[0]);
+        message.reply(`Searching for ${items[0]}`);
+
         if (items.length === 0) {
                 return message.reply('Informe o nome do item.');
+        }
+
+        if (!outputChannelCache) {
+                outputChannelCache = await client.channels.fetch(OUTPUT_CHANNEL);
         }
 
         let reply = '';
@@ -45,7 +73,11 @@ client.on('messageCreate', async (message) => {
                         `📊 Median: ${info.price_median.toLocaleString()}\n\n`;
         }
 
-        message.reply(result);
+        try {
+                await outputChannelCache.send(`${reply}`);
+        } catch (err) {
+                console.error('Failed to sent message', err);
+        }
 });
 
 client.login(process.env.TOKEN);
