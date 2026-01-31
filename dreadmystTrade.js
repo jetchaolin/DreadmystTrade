@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits: GatewayIntentBits } = require('discord.js');
-const { searchPrice } = require('./scraper.js');
+const { searchPrice } = require('./client.js');
 
 const client = new Client({
         intents: [
