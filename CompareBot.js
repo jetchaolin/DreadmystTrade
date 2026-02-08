@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits: GatewayIntentBits } = require('discord.js');
-const { searchPrice } = require('./client.js');
+const { searchPrice } = require('./dreadmarketApiClient.js');
 
 const client = new Client({
         intents: [
@@ -52,6 +52,13 @@ client.on('messageCreate', async (message) => {
                 outputChannelCache = await client.channels.fetch(OUTPUT_CHANNEL);
         }
 
+        function formatPrice(value) {
+                if (typeof value === 'number' && !Number.isNaN(value)) {
+                        return value.toLocaleString();
+                }
+                return 'not found';
+        }
+
         let reply = '';
 
         for (const item of items) {
@@ -67,16 +74,16 @@ client.on('messageCreate', async (message) => {
                 reply +=
                         `🧾 **${info.item_name}**\n` +
                         `📊 Listings: ${info.listings_count}\n` +
-                        `💰 Min: ${info.price_min.toLocaleString()}\n` +
-                        `💰 Max: ${info.price_max.toLocaleString()}\n` +
-                        `📈 Avg: ${info.price_avg.toLocaleString()}\n` +
-                        `📊 Median: ${info.price_median.toLocaleString()}\n\n`;
+                        `💰 Min: ${formatPrice(info.price_min)}\n` +
+                        `💰 Max: ${formatPrice(info.price_max)}\n` +
+                        `📈 Avg: ${formatPrice(info.price_avg)}\n` +
+                        `📊 Median: ${formatPrice(info.price_median)}\n\n`;
         }
 
         try {
                 await outputChannelCache.send(`${reply}`);
         } catch (err) {
-                console.error('Failed to sent message', err);
+                console.error('Failed to send message', err);
         }
 });
 
